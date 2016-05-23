@@ -13,11 +13,12 @@ lazy val schemaGenTask = (
   sourceManaged in Test,
   streams
 ).map { (cp, r, output, s) =>
-    val outDir = (output/"slick-codegen").getPath
-    IO.delete((output ** "*.scala").get)
-    toError(r.run("me.dwnld.slick.codegen.WideTableGenerator", cp.files, Array(outDir), s.log))
-    (output ** "*.scala").get.toSet.toSeq
-  }
+  val outDir = (output/"slick-codegen").getPath
+  IO.delete((output ** "*.scala").get)
+  toError(r.run("me.dwnld.slick.codegen.test.GenDriver",
+    cp.files, Array(outDir), s.log))
+  (output ** "*.scala").get.toSet.toSeq
+}
 
 lazy val genUtils = Project(id = "slick-gen-wide", base = file("gen")).settings(
   name := "slick-gen-wide",
@@ -41,6 +42,8 @@ lazy val genTest = Project(
   libraryDependencies ++= Seq(
     "com.h2database" % "h2" % "1.4.191",
     "ch.qos.logback" % "logback-classic" % "1.1.7",
-    specs2("core")
+    specs2("core"),
+    specs2("scalacheck"),
+    "org.cvogt" %% "scalacheck-extensions" % "0.2"
   )
 ).dependsOn(genUtils)

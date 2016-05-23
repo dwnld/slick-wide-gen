@@ -1,13 +1,9 @@
 package me.dwnld.slick.codegen
 
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 import slick.codegen.SourceCodeGenerator
-import slick.jdbc.JdbcBackend.Database
 import slick.{ model => m }
 
 class WideTableGenerator(model: m.Model) extends SourceCodeGenerator(model) {
-
   override def Table = { table: m.Table =>
     if(table.columns.size > 22)
       new WideTableDef(table)
@@ -69,11 +65,11 @@ class WideTableGenerator(model: m.Model) extends SourceCodeGenerator(model) {
     def RowShape = new RowShapeDef
     class RowShapeDef extends TypeDef {
       override def code: String = {
-        val dependencies = (columns.map { column =>
+        val shapes = (columns.map { column =>
           val repType = s"Rep[${column.exposedType}]"
           s"implicitly[Shape[FlatShapeLevel, ${repType}, ${column.exposedType}, ${repType}]]"
         }).mkString(", ")
-        val dependencySeq = s"Seq(${dependencies})"
+        val shapesSeq = s"Seq(${shapes})"
         def seqConversionCode(columnTypeMapper: String => String) =
           columns.zipWithIndex.map { case (column, index)=>
             s"seq(${index}).asInstanceOf[${columnTypeMapper(column.exposedType)}]"
@@ -84,33 +80,11 @@ class WideTableGenerator(model: m.Model) extends SourceCodeGenerator(model) {
         val seqParseFunction = s"seq => ${compoundValue(seqParseFunctionBody)}"
         val liftedSeqParseFunc = s"seq => ${compoundLiftedValue(liftedSeqParseBody)}"
 
-        s"""implicit object ${name} extends ProductClassShape(${dependencySeq}, ${liftedSeqParseFunc}, ${seqParseFunction})"""
+        s"""implicit object ${name} extends ProductClassShape(${shapesSeq}, ${liftedSeqParseFunc}, ${seqParseFunction})"""
 
       }
       override def doc: String = "" // TODO
       override def rawName: String = s"${tableName(table.name.table)}Shape"
     }
   }
-}
-
-object WideTableGenerator extends App {
-  import scala.concurrent.ExecutionContext.Implicits.global
-
-  val testDb = Database.forURL(
-    "jdbc:h2:mem:test;INIT=runscript from 'classpath:test_schema.sql'",
-    driver = "org.h2.Driver"
-  )
-
-  val profile = slick.driver.H2Driver
-  val modelAction = profile.createModel(Some(profile.defaultTables))
-
-  Await.result(testDb.run(modelAction).map { model =>
-    new WideTableGenerator(model).writeToFile(
-      "slick.driver.H2Driver",
-      args(0),
-      "me.dwnld.slick.codegen",
-      "Tables",
-      "Tables.scala")
-  }, Duration.Inf)
-
 }

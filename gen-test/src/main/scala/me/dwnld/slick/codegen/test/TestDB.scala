@@ -4,9 +4,14 @@ import slick.jdbc.JdbcBackend.Database
 
 
 object TestDB {
-  def db: Database = Database.forURL(
-    "jdbc:h2:mem:test;INIT=runscript from 'classpath:test_schema.sql'",
-    driver = "org.h2.Driver"
-  )
+  def db: Database = Database.forConfig("test")
+  def withDb[T](body: (Database) => T): T = {
+    val theDb = db
+    try {
+      body(theDb)
+    } finally {
+      theDb.shutdown
+    }
+  }
   val profile = slick.driver.H2Driver
 }

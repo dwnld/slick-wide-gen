@@ -39,6 +39,7 @@ lazy val genTest = Project(
   scalaVersion := "2.11.8",
   sourceGenerators in Test <+= schemaGenTask,
   schemaGenTaskKey <<= schemaGenTask,
+  libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _),
   libraryDependencies ++= Seq(
     "com.h2database" % "h2" % "1.4.191",
     "ch.qos.logback" % "logback-classic" % "1.1.7",

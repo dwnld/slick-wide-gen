@@ -9,6 +9,7 @@ object GenDriver extends App {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   val modelAction = TestDB.profile.createModel()
+
   val db = TestDB.db
   try {
     Await.result(db.run(modelAction).map { model =>

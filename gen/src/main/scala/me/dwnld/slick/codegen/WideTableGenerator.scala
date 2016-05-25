@@ -6,18 +6,19 @@ import slick.{ model => m }
 class WideTableGenerator(model: m.Model) extends SourceCodeGenerator(model) {
   override def Table = { table: m.Table =>
     if(table.columns.size > 22)
-      new WideTableDef(table)
+      new super.Table(table) with WideTableDef
     else
-      super.Table(table)
+      new super.Table(table)
   }
 
-  class WideTableDef(table: m.Table) extends super.TableDef(table) {
+  trait WideTableDef {
+    self: super.TableDef =>
     override def hlistEnabled = false
 
     override def extractor =
       throw new RuntimeException("No extractor is defined for a table with more than 22 columns")
 
-    def compoundRepName = s"${tableName(table.name.table)}Rep"
+    def compoundRepName = s"${tableName(model.name.table)}Rep"
     def compoundLiftedValue(values: Seq[String]): String = {
         s"""${compoundRepName}(${values.mkString(",")})"""
     }
@@ -38,7 +39,7 @@ class WideTableGenerator(model: m.Model) extends SourceCodeGenerator(model) {
     )
 
     override def compoundValue(values: Seq[String]) =
-      s"""${entityName(table.name.table)}(${values.mkString(", ")})"""
+      s"""${entityName(model.name.table)}(${values.mkString(", ")})"""
 
     override def factory = ""
 
@@ -84,7 +85,7 @@ class WideTableGenerator(model: m.Model) extends SourceCodeGenerator(model) {
 
       }
       override def doc: String = "" // TODO
-      override def rawName: String = s"${tableName(table.name.table)}Shape"
+      override def rawName: String = s"${tableName(model.name.table)}Shape"
     }
   }
 }

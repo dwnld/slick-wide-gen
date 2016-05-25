@@ -4,6 +4,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import slick.jdbc.JdbcBackend.Database
 import me.dwnld.slick.codegen.WideTableGenerator
+import slick.{ model => m }
 
 object GenDriver extends App {
   import scala.concurrent.ExecutionContext.Implicits.global

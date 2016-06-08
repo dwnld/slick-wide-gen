@@ -31,3 +31,5 @@ CREATE TABLE wide(
        col_2_7 TIME,
        col_2_8 DOUBLE,
        col_2_9 LONG);
+
+CREATE INDEX test_index_name ON wide (col_0, col_1_2, col_2_9)

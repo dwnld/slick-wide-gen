@@ -6,6 +6,9 @@ def slickDep(module: String) = {
   "com.typesafe.slick" %% module % slickVersion
 }
 
+scalaVersion := "2.11.8"
+enablePlugins(CrossPerProjectPlugin)
+
 lazy val schemaGenTaskKey = TaskKey[Seq[File]]("schema-gen")
 lazy val schemaGenTask = (
   fullClasspath in Compile,
@@ -21,15 +24,25 @@ lazy val schemaGenTask = (
 }
 
 lazy val genUtils = Project(id = "slick-gen-wide", base = file("gen")).settings(
+  S3Resolver.defaults: _*
+).settings(
   name := "slick-gen-wide",
   description := "Code generation utilties for wide tables in Scala 2.11",
   version := "0.0.1",
   scalaVersion := "2.11.8",
   crossScalaVersions := Seq("2.10.6", "2.11.8"),
+  isSnapshot := true,
   libraryDependencies ++= Seq(
     slickDep("slick"),
     slickDep("slick-codegen")
-  )
+  ),
+  // Settings to publish to our private S3 bucket.
+  publishMavenStyle := false,
+  publishTo := {
+    val prefix = if (isSnapshot.value) "snapshots" else "releases"
+
+    Some(s3resolver.value(s"$prefix s3 bucket", s3(prefix+".mvn-repo.dwnld.me")) withIvyPatterns)
+  }
 )
 
 lazy val genTest = Project(
@@ -37,6 +50,7 @@ lazy val genTest = Project(
   base = file("gen-test")
 ).settings(
   scalaVersion := "2.11.8",
+  crossScalaVersions := Seq("2.11.8"),
   sourceGenerators in Test <+= schemaGenTask,
   schemaGenTaskKey <<= schemaGenTask,
   libraryDependencies <+= scalaVersion("org.scala-lang" % "scala-compiler" % _),

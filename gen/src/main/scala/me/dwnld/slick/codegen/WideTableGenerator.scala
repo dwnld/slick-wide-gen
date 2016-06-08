@@ -87,5 +87,21 @@ class WideTableGenerator(model: m.Model) extends SourceCodeGenerator(model) {
       override def doc: String = "" // TODO
       override def rawName: String = s"${tableName(model.name.table)}Shape"
     }
+
+    class WideIndexDef(index: m.Index) extends self.Index(index) {
+      override def code = {
+        val unique = if(model.unique) s", unique=true" else ""
+        s"""val $name = index("$dbName", ${tuppleValue(columns.map(_.name))}$unique)"""
+      }
+    }
+
+    override def Index = new WideIndexDef(_)
+
+    def tuppleValue(values: Seq[String]): String = {
+      if (values.size == 1) values.head
+      else if(values.size <= 22) s"""(${values.mkString(", ")})"""
+      else throw new Exception("Cannot generate tuple for > 22 columns.")
+    }
+
   }
 }

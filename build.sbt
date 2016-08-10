@@ -8,8 +8,6 @@ def slickDep(module: String) = {
 
 scalaVersion := "2.11.8"
 enablePlugins(CrossPerProjectPlugin)
-publishArtifact in (Compile, packageSrc) := true
-publishArtifact in (Compile, packageDoc) := true
 
 lazy val schemaGenTaskKey = TaskKey[Seq[File]]("schema-gen")
 lazy val schemaGenTask = (
@@ -30,7 +28,7 @@ lazy val genUtils = Project(id = "slick-gen-wide", base = file("gen")).settings(
 ).settings(
   name := "slick-gen-wide",
   description := "Code generation utilties for wide tables in Scala 2.11",
-  version := "0.0.1",
+  version := "0.0.3",
   scalaVersion := "2.11.8",
   crossScalaVersions := Seq("2.10.6", "2.11.8"),
   isSnapshot := true,
@@ -38,6 +36,10 @@ lazy val genUtils = Project(id = "slick-gen-wide", base = file("gen")).settings(
     slickDep("slick"),
     slickDep("slick-codegen")
   ),
+  publishArtifact in (Compile, packageSrc) := true,
+  publishArtifact in (Compile, packageDoc) := true,
+  ivyConfigurations += Configuration("default", "Default", true, List(Configurations.Runtime), true),
+
   // Settings to publish to our private S3 bucket.
   publishMavenStyle := false,
   publishTo := {

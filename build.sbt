@@ -8,6 +8,8 @@ def slickDep(module: String) = {
 
 scalaVersion := "2.11.8"
 enablePlugins(CrossPerProjectPlugin)
+publishArtifact in (Compile, packageSrc) := true
+publishArtifact in (Compile, packageDoc) := true
 
 lazy val schemaGenTaskKey = TaskKey[Seq[File]]("schema-gen")
 lazy val schemaGenTask = (
